@@ -185,8 +185,8 @@ textbox_extra_padding = 0.5 # mm
 # Image ===================================================
 
 # The width of the lines in the scanned image.
-# All lines are 1pt wide(1/72 inch or 25.4/72 mm)
-image_line_width = 24.4/72. # mm
+# All lines are 3bp  wide(3/72 inch or 3*25.4/72 mm)
+image_line_width = 3*25.4/72. # mm
 # The coverage that the line needs to have for recognition
 image_line_coverage = 0.35
 
