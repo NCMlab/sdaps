@@ -28,6 +28,7 @@ from sdaps.utils.exceptions import RecognitionError
 from sdaps import log
 
 from sdaps.utils.barcode import read_barcode
+from sdaps.utils.ocr import read_text_from_surface
 from sdaps.utils.ugettext import ugettext, ungettext
 _ = ugettext
 
@@ -913,6 +914,13 @@ class Textbox(Box, metaclass=model.buddy.Register):
             self.obj.data.y = bbox[1] - (scan_padding + extra_padding)
             self.obj.data.width = bbox[2] + 2 * (scan_padding + extra_padding)
             self.obj.data.height = bbox[3] + 2 * (scan_padding + extra_padding)
+
+            text = read_text_from_surface(
+                surface, matrix,
+                self.obj.data.x, self.obj.data.y,
+                self.obj.data.width, self.obj.data.height
+            )
+            self.obj.data.text = text if text is not None else ''
         else:
             self.obj.data.state = False
 

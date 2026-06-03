@@ -195,6 +195,13 @@ image_line_coverage = 0.35
 c128_chars = [chr(i) for i in range(32, 127)] #+ [u'È', u'É', u'Ê', u'Ë', u'Ì', u'Í', u'Î', u'Ï', u'Ð', u'Ñ', u'Ò', u'Ó']
 
 
+# OCR =====================================================
+
+#: Language codes passed to EasyOCR when reading text box content.
+#: See https://www.jaided.ai/easyocr/ for supported language codes.
+ocr_languages = ['en']
+
+
 # External commands =======================================
 #: The binary used to compile latex documents.
 latex_engine = "pdflatex"
