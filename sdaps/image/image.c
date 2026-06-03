@@ -763,7 +763,7 @@ real_find_corner_marker(cairo_surface_t *surface,
 	gint coverage = 0;
 
 	while (!found && (distance < search_distance)) {
-		distance += MAX(line_length,1)
+		distance += MAX(line_length,1);
 
 		/* Try searching from the top/bottom. */
 		coverage = 0;
