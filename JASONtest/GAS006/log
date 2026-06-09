@@ -1,0 +1,38 @@
+------------------------------------------------------------------------------
+- SDAPS -- setup
+------------------------------------------------------------------------------
+Running pdflatex now multiple times to generate the questionnaire.
+Warning: Option 1.3 got no question.
+Warning: Head 2 got no title.
+Running pdflatex now multiple imes to generate the questionnaire.
+GAS
+Author: 
+scale_id: gas
+------------------------------------------------------------------------------
+- SDAPS -- stamp
+------------------------------------------------------------------------------
+Running pdflatex now multiple times to generate the stamped questionnaire.
+------------------------------------------------------------------------------
+- SDAPS -- stamp
+------------------------------------------------------------------------------
+Running pdflatex now multiple times to generate the stamped questionnaire.
+------------------------------------------------------------------------------
+- SDAPS -- add
+------------------------------------------------------------------------------
+Converting input files into a single temporary file.
+Processing /tmp/sdaps-convert-0w4_all9.tif
+Done
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+1 sheet
+Processed 1 of 1 sheets, took 0.618170 seconds
+------------------------------------------------------------------------------
+- SDAPS -- gui
+------------------------------------------------------------------------------
+/home/steffejr/PaperQuestionnaires/sdaps/sdaps/gui/__init__.py:180: Warning: g_object_set_data_full: assertion 'G_IS_OBJECT (object)' failed
+  self._builder.add_from_file(
+------------------------------------------------------------------------------
+- SDAPS -- stamp
+------------------------------------------------------------------------------
+Running pdflatex now multiple times to generate the stamped questionnaire.
