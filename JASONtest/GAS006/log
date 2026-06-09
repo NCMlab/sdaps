@@ -291,3 +291,34 @@ Processed 1 of 1 sheets, took 7.220535 seconds
 ------------------------------------------------------------------------------
 - SDAPS -- csvdata_export
 ------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- reset
+------------------------------------------------------------------------------
+Removing stored data...
+Done
+------------------------------------------------------------------------------
+- SDAPS -- add
+------------------------------------------------------------------------------
+Converting input files into a single temporary file.
+Processing /tmp/sdaps-convert-qhjrm09l.tif
+Done
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+1 sheet
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/478 [00:00<?, ?it/s]Loading weights: 100%|##########| 478/478 [00:00<00:00, 4821.64it/s]
+[transformers] [1mVisionEncoderDecoderModel LOAD REPORT[0m from: microsoft/trocr-base-handwritten
+Key                         | Status  | 
+----------------------------+---------+-
+encoder.pooler.dense.bias   | MISSING | 
+encoder.pooler.dense.weight | MISSING | 
+
+Notes:
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+/home/steffejr/.local/lib/python3.12/site-packages/transformers/generation/utils.py:1612: UserWarning: Using the model-agnostic default `max_length` (=21) to control the generation length. We recommend setting `max_new_tokens` to control the maximum length of the generation.
+  warnings.warn(
+Processed 1 of 1 sheets, took 10.059249 seconds
+------------------------------------------------------------------------------
+- SDAPS -- csvdata_export
+------------------------------------------------------------------------------

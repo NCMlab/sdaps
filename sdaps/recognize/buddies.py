@@ -38,14 +38,16 @@ pt_to_mm = 25.4 / 72.0
 
 warned_multipage_not_correctly_scanned = False
 
-_easyocr_reader = None
+_trocr_processor = None
+_trocr_model = None
 
-def _get_easyocr_reader():
-    global _easyocr_reader
-    if _easyocr_reader is None:
-        import easyocr
-        _easyocr_reader = easyocr.Reader(['en'], gpu=False, verbose=False)
-    return _easyocr_reader
+def _get_trocr():
+    global _trocr_processor, _trocr_model
+    if _trocr_processor is None:
+        from transformers import TrOCRProcessor, VisionEncoderDecoderModel
+        _trocr_processor = TrOCRProcessor.from_pretrained('microsoft/trocr-base-handwritten')
+        _trocr_model = VisionEncoderDecoderModel.from_pretrained('microsoft/trocr-base-handwritten')
+    return _trocr_processor, _trocr_model
 
 
 class Sheet(model.buddy.Buddy, metaclass=model.buddy.Register):
@@ -987,30 +989,27 @@ class Textbox(Box, metaclass=model.buddy.Register):
 
                         if blobs:
                             blobs.sort(key=lambda b: b[1])  # left to right
-                            reader = _get_easyocr_reader()
-                            pad = max(4, int(ah * 0.1))
+                            trocr_processor, trocr_model = _get_trocr()
+                            pad = 8
                             chars = []
                             for blob_i, x0b, y0b, x1b, y1b in blobs:
                                 cx0 = max(0, x0b - pad)
                                 cy0 = max(0, y0b - pad)
                                 cx1 = min(iw, x1b + pad)
                                 cy1 = min(ih, y1b + pad)
-                                # Clean crop: only this blob's pixels are black
-                                blob_mask = labeled[cy0:cy1, cx0:cx1] == blob_i
-                                clean = np.where(blob_mask, 0, 255).astype(np.uint8)
-                                ch, cw = clean.shape
-                                # Scale up 4x for better EasyOCR accuracy
-                                up = np.array(_PILImage.fromarray(clean).resize(
-                                    (cw * 4, ch * 4), _PILImage.LANCZOS))
-                                uh, uw = up.shape
-                                crop_rgb = np.stack([up] * 3, axis=-1)
+                                # Raw bounding box crop — TrOCR needs context pixels
+                                raw = inner[cy0:cy1, cx0:cx1]
+                                ch, cw = raw.shape
+                                crop_pil = _PILImage.fromarray(raw).resize(
+                                    (cw * 4, ch * 4), _PILImage.LANCZOS).convert('RGB')
                                 try:
-                                    result = reader.recognize(
-                                        crop_rgb,
-                                        horizontal_list=[[0, uw, 0, uh]],
-                                        free_list=[])
-                                    if result:
-                                        chars.append(result[0][1])
+                                    pixel_values = trocr_processor(
+                                        images=crop_pil, return_tensors='pt').pixel_values
+                                    generated_ids = trocr_model.generate(pixel_values)
+                                    text = trocr_processor.batch_decode(
+                                        generated_ids, skip_special_tokens=True)[0]
+                                    if text:
+                                        chars.append(text)
                                 except Exception:
                                     pass
                             if chars:
