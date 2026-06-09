@@ -22,9 +22,10 @@ from sdaps import log
 from sdaps.utils.ugettext import ugettext, ungettext
 _ = ugettext
 
-def convert_images(images, outfile, paper_width, paper_height, transform=False):
+def convert_images(images, outfile, paper_width, paper_height, transform=False, gray_outfile=None):
 
     portrait = paper_height >= paper_width
+    gray_pages = [] if gray_outfile else None
 
     for i, (img, filename, page) in enumerate(opencv.iter_images_and_pages(images)):
         img = opencv.ensure_orientation(img, portrait)
@@ -36,7 +37,16 @@ def convert_images(images, outfile, paper_width, paper_height, transform=False):
             except AssertionError:
                 log.warn(_("Could not apply 3D-transformation to image '%s', page %i!") % (filename, page))
 
+        if gray_outfile is not None:
+            from PIL import Image as _PILImage
+            gray_arr = opencv.ensure_greyscale(img)
+            gray_pages.append(_PILImage.fromarray(gray_arr, mode='L'))
+
         mono = opencv.convert_to_monochrome(img)
         image.write_a1_to_tiff(outfile, opencv.to_a1_surf(mono))
+
+    if gray_pages:
+        from PIL import Image as _PILImage
+        gray_pages[0].save(gray_outfile, save_all=True, append_images=gray_pages[1:], compression='tiff_lzw')
 
 

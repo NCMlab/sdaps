@@ -175,3 +175,119 @@ Processed 1 of 1 sheets, took 7.041234 seconds
 ------------------------------------------------------------------------------
 - SDAPS -- csvdata_export
 ------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- reset
+------------------------------------------------------------------------------
+Removing stored data...
+Done
+------------------------------------------------------------------------------
+- SDAPS -- add
+------------------------------------------------------------------------------
+Converting input files into a single temporary file.
+Processing /tmp/sdaps-convert-byn4w4v0.tif
+Done
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+1 sheet
+Warning: OCR failed for textbox: 'Textbox' object has no attribute 'survey'
+Warning: OCR failed for textbox: 'Textbox' object has no attribute 'survey'
+Processed 1 of 1 sheets, took 0.923335 seconds
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+1 sheet
+Processed 0 of 1 sheets, took 0.000862 seconds
+------------------------------------------------------------------------------
+- SDAPS -- reset
+------------------------------------------------------------------------------
+Removing stored data...
+Done
+------------------------------------------------------------------------------
+- SDAPS -- add
+------------------------------------------------------------------------------
+Converting input files into a single temporary file.
+Processing /tmp/sdaps-convert-11pb2dxn.tif
+Done
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+1 sheet
+/home/steffejr/.local/lib/python3.12/site-packages/torch/utils/data/dataloader.py:752: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Processed 1 of 1 sheets, took 7.595815 seconds
+------------------------------------------------------------------------------
+- SDAPS -- csvdata_export
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+1 sheet
+Processed 0 of 1 sheets, took 0.001463 seconds
+------------------------------------------------------------------------------
+- SDAPS -- reset
+------------------------------------------------------------------------------
+Removing stored data...
+Done
+------------------------------------------------------------------------------
+- SDAPS -- add
+------------------------------------------------------------------------------
+Converting input files into a single temporary file.
+Processing /tmp/sdaps-convert-u__5lc2c.tif
+Done
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+1 sheet
+Warning: OCR DEBUG: px=397 py=509 pw=872 ph=107 surf=2616x3431
+/home/steffejr/.local/lib/python3.12/site-packages/torch/utils/data/dataloader.py:752: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Warning: OCR DEBUG: px=1487 py=511 pw=803 ph=107 surf=2616x3431
+Processed 1 of 1 sheets, took 7.331263 seconds
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/local/lib/python3/dist-packages/sdaps/__init__.py", line 67, in main
+    return cmdline['_func'](cmdline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3/dist-packages/sdaps/script.py", line 126, in decorated_function
+    result = function(cmdline)
+             ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3/dist-packages/sdaps/cmdline/recognize.py", line 47, in recognize
+    from sdaps import recognize
+  File "/usr/local/lib/python3/dist-packages/sdaps/recognize/__init__.py", line 27, in <module>
+    from . import buddies
+  File "/usr/local/lib/python3/dist-packages/sdaps/recognize/buddies.py", line 31, in <module>
+    from sdaps.utils.ocr import read_text_from_surface
+ModuleNotFoundError: No module named 'sdaps.utils.ocr'
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+1 sheet
+Processed 0 of 1 sheets, took 0.000875 seconds
+------------------------------------------------------------------------------
+- SDAPS -- reset
+------------------------------------------------------------------------------
+Removing stored data...
+Done
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+0 sheets
+------------------------------------------------------------------------------
+- SDAPS -- add
+------------------------------------------------------------------------------
+Converting input files into a single temporary file.
+Processing /tmp/sdaps-convert-1rhnh3kb.tif
+Done
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+1 sheet
+/home/steffejr/.local/lib/python3.12/site-packages/torch/utils/data/dataloader.py:752: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Processed 1 of 1 sheets, took 7.220535 seconds
+------------------------------------------------------------------------------
+- SDAPS -- csvdata_export
+------------------------------------------------------------------------------

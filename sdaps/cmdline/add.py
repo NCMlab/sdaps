@@ -80,6 +80,7 @@ def add(cmdline):
 
     filelist = []
     deletelist = []
+    gray_tmp = None
 
     if not cmdline['convert']:
         for file in cmdline['images']:
@@ -103,13 +104,15 @@ def add(cmdline):
         print(_("Converting input files into a single temporary file."))
 
         tmp = tempfile.mktemp(suffix='.tif', prefix='sdaps-convert-')
+        gray_tmp = tempfile.mktemp(suffix='.tif', prefix='sdaps-convert-gray-')
         deletelist.append(tmp)
+        deletelist.append(gray_tmp)
         filelist.append(tmp)
 
         # Run conversion
         # TODO: Allow 3D transformation here!
         try:
-            convert_images(cmdline['images'], tmp, survey.defs.paper_width, survey.defs.paper_height, cmdline['transform'])
+            convert_images(cmdline['images'], tmp, survey.defs.paper_width, survey.defs.paper_height, cmdline['transform'], gray_outfile=gray_tmp)
 
             if not check_image(survey, tmp, cmdline['duplex'], cmdline['force']):
                 log.error(_("The page count of the created temporary file does not work with this survey."))
@@ -125,7 +128,8 @@ def add(cmdline):
         for file in filelist:
             print(_('Processing %s') % file)
 
-            add_image(survey, file, cmdline['duplex'], cmdline['force'], cmdline['copy'])
+            gray_file = gray_tmp if (gray_tmp and os.path.exists(gray_tmp)) else None
+            add_image(survey, file, cmdline['duplex'], cmdline['force'], cmdline['copy'], gray_file=gray_file)
 
             print(_('Done'))
 

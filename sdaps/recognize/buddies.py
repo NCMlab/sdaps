@@ -926,7 +926,7 @@ class Textbox(Box, metaclass=model.buddy.Register):
             self.obj.data.width = bbox[2] + 2 * (scan_padding + extra_padding)
             self.obj.data.height = bbox[3] + 2 * (scan_padding + extra_padding)
 
-            # OCR the writing using the full textbox region for context
+            # OCR the writing via connected-component blob segmentation + EasyOCR
             try:
                 import numpy as np
                 from scipy import ndimage as _ndimage
@@ -942,7 +942,7 @@ class Textbox(Box, metaclass=model.buddy.Register):
                 ph = int(abs(py1 - py0))
 
                 if pw > 0 and ph > 0:
-                    # Render textbox to grayscale PNG
+                    # Render the 1-bit surface to a grayscale array
                     rgb_surf = cairo.ImageSurface(cairo.FORMAT_RGB24, pw, ph)
                     cr_ocr = cairo.Context(rgb_surf)
                     cr_ocr.set_source_rgb(1, 1, 1)
@@ -956,53 +956,65 @@ class Textbox(Box, metaclass=model.buddy.Register):
                     gray = np.array(_PILImage.open(tmp).convert('L'))
                     os.unlink(tmp)
 
-                    # Strip box borders: inset ~5% horizontally, ~15% vertically
-                    ix = max(3, int(pw * 0.05))
-                    iy = max(3, int(ph * 0.15))
-                    inner = gray[iy:ph - iy, ix:pw - ix]
-                    ih, iw = inner.shape
+                    ah, aw = gray.shape
+                    if ah > 0 and aw > 0:
+                        # Strip box borders: inset ~5% horizontally, ~15% vertically.
+                        # The matrix coordinates place us inside the box already,
+                        # so this inset fully removes any remaining border lines.
+                        ix = max(3, int(aw * 0.05))
+                        iy = max(3, int(ah * 0.15))
+                        inner = gray[iy:ah - iy, ix:aw - ix]
+                        ih, iw = inner.shape
 
-                    # Find ink blobs via connected components
-                    labeled, n_blobs = _ndimage.label(inner < 128)
-                    min_h = max(5, int(ih * 0.30))  # blobs must be at least 30% of box height
-                    min_w = max(3, int(iw * 0.03))  # blobs must be at least 3% of box width
-                    blobs = []
-                    for i in range(1, n_blobs + 1):
-                        rows, cols = np.where(labeled == i)
-                        y0b, y1b = rows.min(), rows.max()
-                        x0b, x1b = cols.min(), cols.max()
-                        bh = y1b - y0b + 1
-                        bw = x1b - x0b + 1
-                        if (labeled == i).sum() < 50: continue       # noise
-                        if bw > iw * 0.8: continue                   # border line
-                        if bh < min_h: continue                      # too short (border fragment)
-                        if bw < min_w: continue                      # too narrow (border arc)
-                        blobs.append((x0b, y0b, x1b, y1b))
+                        binary = inner < 128
 
-                    if blobs:
-                        blobs.sort(key=lambda b: b[0])  # left to right
-                        reader = _get_easyocr_reader()
-                        pad = max(4, int(ph * 0.1))
-                        chars = []
-                        for x0b, y0b, x1b, y1b in blobs:
-                            cx0 = max(0, x0b - pad)
-                            cy0 = max(0, y0b - pad)
-                            cx1 = min(iw, x1b + pad)
-                            cy1 = min(ih, y1b + pad)
-                            crop = inner[cy0:cy1, cx0:cx1]
-                            ch, cw = crop.shape
-                            crop_rgb = np.stack([crop] * 3, axis=-1)
-                            try:
-                                result = reader.recognize(
-                                    crop_rgb,
-                                    horizontal_list=[[0, cw, 0, ch]],
-                                    free_list=[])
-                                if result:
-                                    chars.append(result[0][1])
-                            except Exception:
-                                pass
-                        if chars:
-                            self.obj.data.text = ''.join(chars)
+                        # Find ink blobs via connected components
+                        labeled, n_blobs = _ndimage.label(binary)
+                        min_h = max(5, int(ih * 0.25))
+                        min_w = max(3, int(iw * 0.03))
+                        blobs = []
+                        for blob_i in range(1, n_blobs + 1):
+                            rows, cols = np.where(labeled == blob_i)
+                            y0b, y1b = rows.min(), rows.max()
+                            x0b, x1b = cols.min(), cols.max()
+                            bh = y1b - y0b + 1
+                            bw = x1b - x0b + 1
+                            if (labeled == blob_i).sum() < 50: continue
+                            if bw > iw * 0.8: continue
+                            if bh < min_h: continue
+                            if bw < min_w: continue
+                            blobs.append((blob_i, x0b, y0b, x1b, y1b))
+
+                        if blobs:
+                            blobs.sort(key=lambda b: b[1])  # left to right
+                            reader = _get_easyocr_reader()
+                            pad = max(4, int(ah * 0.1))
+                            chars = []
+                            for blob_i, x0b, y0b, x1b, y1b in blobs:
+                                cx0 = max(0, x0b - pad)
+                                cy0 = max(0, y0b - pad)
+                                cx1 = min(iw, x1b + pad)
+                                cy1 = min(ih, y1b + pad)
+                                # Clean crop: only this blob's pixels are black
+                                blob_mask = labeled[cy0:cy1, cx0:cx1] == blob_i
+                                clean = np.where(blob_mask, 0, 255).astype(np.uint8)
+                                ch, cw = clean.shape
+                                # Scale up 4x for better EasyOCR accuracy
+                                up = np.array(_PILImage.fromarray(clean).resize(
+                                    (cw * 4, ch * 4), _PILImage.LANCZOS))
+                                uh, uw = up.shape
+                                crop_rgb = np.stack([up] * 3, axis=-1)
+                                try:
+                                    result = reader.recognize(
+                                        crop_rgb,
+                                        horizontal_list=[[0, uw, 0, uh]],
+                                        free_list=[])
+                                    if result:
+                                        chars.append(result[0][1])
+                                except Exception:
+                                    pass
+                            if chars:
+                                self.obj.data.text = ''.join(chars)
             except Exception as e:
                 log.warn(_('OCR failed for textbox: %s') % str(e))
         else:

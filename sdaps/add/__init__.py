@@ -69,7 +69,7 @@ def check_image(survey, file, duplex_scan=False, force=False, message=False):
 
     return True
 
-def add_image(survey, file, duplex_scan=False, force=False, copy=True):
+def add_image(survey, file, duplex_scan=False, force=False, copy=True, gray_file=None):
 
     insert_dummy_pages, image_count_factor = _insert_dummy_pages(survey, duplex_scan)
 
@@ -88,6 +88,8 @@ def add_image(survey, file, duplex_scan=False, force=False, copy=True):
     if copy:
         tiff = survey.new_path('%i.tif')
         shutil.copyfile(file, tiff)
+        if gray_file and os.path.exists(gray_file):
+            shutil.copyfile(gray_file, tiff.replace('.tif', '_gray.tif'))
     else:
         tiff = file
 
