@@ -393,3 +393,135 @@ Traceback (most recent call last):
     print(survey.info[key])
           ~~~~~~~~~~~^^^^^
 KeyError: 'site:Montreal'
+------------------------------------------------------------------------------
+- SDAPS -- reset
+------------------------------------------------------------------------------
+Removing stored data...
+Done
+------------------------------------------------------------------------------
+- SDAPS -- add
+------------------------------------------------------------------------------
+Converting input files into a single temporary file.
+Processing /tmp/sdaps-convert-k390l0rd.tif
+Done
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+1 sheet
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/478 [00:00<?, ?it/s]Loading weights:  79%|#######9  | 380/478 [00:00<00:00, 3798.66it/s]Loading weights: 100%|##########| 478/478 [00:00<00:00, 4478.89it/s]
+[transformers] [1mVisionEncoderDecoderModel LOAD REPORT[0m from: microsoft/trocr-base-handwritten
+Key                         | Status  | 
+----------------------------+---------+-
+encoder.pooler.dense.bias   | MISSING | 
+encoder.pooler.dense.weight | MISSING | 
+
+Notes:
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+/home/steffejr/.local/lib/python3.12/site-packages/transformers/generation/utils.py:1612: UserWarning: Using the model-agnostic default `max_length` (=21) to control the generation length. We recommend setting `max_new_tokens` to control the maximum length of the generation.
+  warnings.warn(
+Processed 1 of 1 sheets, took 10.600122 seconds
+------------------------------------------------------------------------------
+- SDAPS -- ocrtraining_export
+------------------------------------------------------------------------------
+Exported 2 (image, text) pairs to JASONtest/GAS006/ocr_training_export
+------------------------------------------------------------------------------
+- SDAPS -- ocrtraining_export
+------------------------------------------------------------------------------
+Exported 2 (image, text) pairs to JASONtest/GAS006/ocr_training_export
+------------------------------------------------------------------------------
+- SDAPS -- ocrtraining_export
+------------------------------------------------------------------------------
+Exported 0 (image, text) pairs to /tmp/ocr_export_test
+------------------------------------------------------------------------------
+- SDAPS -- add
+------------------------------------------------------------------------------
+Converting input files into a single temporary file.
+Processing /tmp/sdaps-convert-v_q9u5m5.tif
+Done
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+2 sheets
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|                                                                                                                                    | 0/478 [00:00<?, ?it/s]Loading weights: 100%|########################################################################################################################| 478/478 [00:00<00:00, 4975.45it/s]
+[transformers] [1mVisionEncoderDecoderModel LOAD REPORT[0m from: microsoft/trocr-base-handwritten
+Key                         | Status  | 
+----------------------------+---------+-
+encoder.pooler.dense.weight | [31mMISSING[0m | 
+encoder.pooler.dense.bias   | [31mMISSING[0m | 
+
+Notes:
+- [31mMISSING:[0m	[3mthose params were newly initialized because missing from the checkpoint. Consider training on your downstream task.[0m
+/home/steffejr/.local/lib/python3.12/site-packages/transformers/generation/utils.py:1612: UserWarning: Using the model-agnostic default `max_length` (=21) to control the generation length. We recommend setting `max_new_tokens` to control the maximum length of the generation.
+  warnings.warn(
+Processed 1 of 2 sheets, took 11.122262 seconds
+------------------------------------------------------------------------------
+- SDAPS -- gui
+------------------------------------------------------------------------------
+/home/steffejr/PaperQuestionnaires/sdaps/sdaps/gui/__init__.py:180: Warning: g_object_set_data_full: assertion 'G_IS_OBJECT (object)' failed
+  self._builder.add_from_file(
+------------------------------------------------------------------------------
+- SDAPS -- gui
+------------------------------------------------------------------------------
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|                                                                                                                                    | 0/478 [00:00<?, ?it/s]Loading weights: 100%|########################################################################################################################| 478/478 [00:00<00:00, 5659.45it/s]
+[transformers] [1mVisionEncoderDecoderModel LOAD REPORT[0m from: microsoft/trocr-base-handwritten
+Key                         | Status  | 
+----------------------------+---------+-
+encoder.pooler.dense.weight | [31mMISSING[0m | 
+encoder.pooler.dense.bias   | [31mMISSING[0m | 
+
+Notes:
+- [31mMISSING:[0m	[3mthose params were newly initialized because missing from the checkpoint. Consider training on your downstream task.[0m
+/home/steffejr/.local/lib/python3.12/site-packages/transformers/generation/utils.py:1612: UserWarning: Using the model-agnostic default `max_length` (=21) to control the generation length. We recommend setting `max_new_tokens` to control the maximum length of the generation.
+  warnings.warn(
+------------------------------------------------------------------------------
+- SDAPS -- csvdata_export
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- ocrtraining_export
+------------------------------------------------------------------------------
+Exported 0 (image, text) pairs to JASONtest/GAS006/ocr_training_export
+------------------------------------------------------------------------------
+- SDAPS -- ocrtraining_export
+------------------------------------------------------------------------------
+Exported 4 (image, text) pairs to JASONtest/GAS006/ocr_training_export
+------------------------------------------------------------------------------
+- SDAPS -- add
+------------------------------------------------------------------------------
+Converting input files into a single temporary file.
+Processing /tmp/sdaps-convert-hcuwa1da.tif
+Done
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+3 sheets
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|                                                                                                                                    | 0/478 [00:00<?, ?it/s]Loading weights: 100%|########################################################################################################################| 478/478 [00:00<00:00, 4863.53it/s]
+[transformers] [1mVisionEncoderDecoderModel LOAD REPORT[0m from: microsoft/trocr-base-handwritten
+Key                         | Status  | 
+----------------------------+---------+-
+encoder.pooler.dense.weight | [31mMISSING[0m | 
+encoder.pooler.dense.bias   | [31mMISSING[0m | 
+
+Notes:
+- [31mMISSING:[0m	[3mthose params were newly initialized because missing from the checkpoint. Consider training on your downstream task.[0m
+/home/steffejr/.local/lib/python3.12/site-packages/transformers/generation/utils.py:1612: UserWarning: Using the model-agnostic default `max_length` (=21) to control the generation length. We recommend setting `max_new_tokens` to control the maximum length of the generation.
+  warnings.warn(
+Processed 1 of 3 sheets, took 11.839755 seconds
+------------------------------------------------------------------------------
+- SDAPS -- gui
+------------------------------------------------------------------------------
+/home/steffejr/PaperQuestionnaires/sdaps/sdaps/gui/__init__.py:180: Warning: g_object_set_data_full: assertion 'G_IS_OBJECT (object)' failed
+  self._builder.add_from_file(
+------------------------------------------------------------------------------
+- SDAPS -- gui
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- csvdata_export
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- ocrtraining_export
+------------------------------------------------------------------------------
+Exported 6 (image, text) pairs to sdaps/JASONtest/GAS006/ocr_training_export

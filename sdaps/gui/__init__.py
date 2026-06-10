@@ -63,6 +63,16 @@ def gui(survey, cmdline):
     try:
         # Exit the mainloop if Ctrl+C is pressed in the terminal.
         GLib.unix_signal_add_full(GLib.PRIORITY_HIGH, signal.SIGINT, lambda *args : Gtk.main_quit(), None)
+
+        # SIGTERM is used by external process managers (e.g. a web-based
+        # review dashboard running the GUI under Broadway) to request a
+        # graceful shutdown. Save before quitting, since there is no
+        # window-close dialog to do so in that scenario.
+        def _save_and_quit(*args):
+            provider.survey.save()
+            Gtk.main_quit()
+            return False
+        GLib.unix_signal_add_full(GLib.PRIORITY_HIGH, signal.SIGTERM, _save_and_quit, None)
     except AttributeError:
         # Whatever, it is only to enable Ctrl+C anyways
         pass

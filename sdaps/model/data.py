@@ -69,6 +69,12 @@ class Textbox(Box):
     def __init__(self, parent):
         self.text = str()
 
+        # Relative path (within the survey directory) to the image crop that
+        # was used as input for handwriting recognition. Combined with
+        # `text` (which may later be corrected via the GUI), this forms an
+        # (image, text) pair that can be used to fine-tune the OCR model.
+        self.ocr_image = None
+
         Box.__init__(self, parent)
 
 

@@ -54,6 +54,7 @@ from . import stamp
 # And, subparsers of import/export
 from . import csvdata
 from . import feather
+from . import ocrtraining
 
 # setup subparsers (yeah, I know)
 from . import setup

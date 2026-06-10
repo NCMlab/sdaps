@@ -968,6 +968,19 @@ class Textbox(Box, metaclass=model.buddy.Register):
                         inner = gray[iy:ah - iy, ix:aw - ix]
                         ih, iw = inner.shape
 
+                        # Save the crop used for recognition. Paired with the
+                        # (possibly human-corrected, via the GUI) data.text,
+                        # this forms an (image, text) example that can later
+                        # be used to fine-tune the OCR model.
+                        training_dir = self.obj.sheet.survey.path('ocr_training')
+                        os.makedirs(training_dir, exist_ok=True)
+                        image_filename = os.path.join(
+                            'ocr_training',
+                            '%i_%s.png' % (self.obj.sheet._rowid, self.obj.id_csv()))
+                        _PILImage.fromarray(inner).save(
+                            self.obj.sheet.survey.path(image_filename))
+                        self.obj.data.ocr_image = image_filename
+
                         binary = inner < 128
 
                         # Find ink blobs via connected components

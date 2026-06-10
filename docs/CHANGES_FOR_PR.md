@@ -152,6 +152,15 @@ try:
             ix = max(3, int(aw * 0.05)); iy = max(3, int(ah * 0.15))
             inner = gray[iy:ah-iy, ix:aw-ix]
             ih, iw = inner.shape
+
+            # Save the crop for the OCR training-data export (see section 5)
+            training_dir = self.obj.sheet.survey.path('ocr_training')
+            os.makedirs(training_dir, exist_ok=True)
+            image_filename = os.path.join('ocr_training',
+                '%i_%s.png' % (self.obj.sheet._rowid, self.obj.id_csv()))
+            _PILImage.fromarray(inner).save(self.obj.sheet.survey.path(image_filename))
+            self.obj.data.ocr_image = image_filename
+
             binary = inner < 128
 
             labeled, n_blobs = _ndimage.label(binary)
@@ -198,7 +207,149 @@ except Exception as e:
 
 ---
 
-## 5. Grayscale Companion TIFF During Conversion (infrastructure)
+## 5. OCR Training-Data Capture and Export
+
+**Problem:** The TrOCR model (section 4) does not generalize perfectly to
+every handwriting style — on a second test scan, recognition was poor enough
+that a human needs to review and correct the text via `sdaps gui`. Those
+corrections are valuable: paired with the image crop that was fed to the OCR
+model, they form exactly the kind of (image, text) data needed to fine-tune
+TrOCR on this project's handwriting in the future.
+
+**Approach:** Every time `Textbox.recognize()` detects writing, it now saves
+the same grayscale crop that is used for OCR (the `inner` array, after the
+border inset, before binarization) to `<project>/ocr_training/<sheet_rowid>_
+<field>.png`, and records that path on `data.ocr_image`. The OCR's guess is
+still stored in `data.text` as before, and `sdaps gui` lets a human correct
+it. A new export command, `sdaps export ocr-training`, then walks all
+sheets and, for every textbox with both `data.ocr_image` and a non-empty
+`data.text`, copies the crop into an `images/` directory and writes a
+`manifest.csv` row of `(image, text, questionnaire_id, field)`. The `-f`
+filter option (e.g. `-f "verified"`) can restrict the export to sheets that
+have actually been reviewed by a human, so the dataset only contains
+human-confirmed labels.
+
+**Files changed:**
+
+### `sdaps/model/data.py`
+Added an `ocr_image` attribute (default `None`) to the `Textbox` data class,
+holding the survey-relative path to the saved crop.
+
+### `sdaps/recognize/buddies.py`
+Inside `Textbox.recognize()`, right after computing `inner`/`ih, iw` (see the
+updated snippet in section 4 above), saves `inner` as a PNG under
+`ocr_training/` and sets `self.obj.data.ocr_image` to its relative path.
+
+### `sdaps/ocrtraining.py` (new file)
+```python
+def export(survey, output_dir, filter=None):
+    filter = clifilter.clifilter(survey, filter)
+
+    images_dir = os.path.join(output_dir, 'images')
+    os.makedirs(images_dir, exist_ok=True)
+
+    manifest = open(os.path.join(output_dir, 'manifest.csv'), 'w', encoding='utf-8', newline='')
+    writer = csv.DictWriter(manifest, ['image', 'text', 'questionnaire_id', 'field'])
+    writer.writeheader()
+
+    count = [0]
+
+    def export_sheet():
+        sheet = survey.sheet
+        for qobject in survey.questionnaire.qobjects:
+            if not hasattr(qobject, 'boxes'):
+                continue
+            for box in qobject.boxes:
+                if not isinstance(box, model.questionnaire.Textbox):
+                    continue
+                if not box.data.ocr_image or not box.data.text:
+                    continue
+
+                src = survey.path(box.data.ocr_image)
+                if not os.path.exists(src):
+                    continue
+
+                dest_name = '%s_%s.png' % (_sanitize(sheet.questionnaire_id), box.id_csv())
+                shutil.copy(src, os.path.join(images_dir, dest_name))
+
+                writer.writerow({
+                    'image': os.path.join('images', dest_name),
+                    'text': box.data.text,
+                    'questionnaire_id': sheet.questionnaire_id,
+                    'field': box.id_csv(),
+                })
+                count[0] += 1
+
+    survey.iterate(export_sheet, filter)
+
+    manifest.close()
+
+    return count[0]
+```
+
+### `sdaps/cmdline/ocrtraining.py` (new file)
+Registers `export ocr-training` as a new `export` subcommand, with `-o/--output`
+(default `<project>/ocr_training_export`) and `-f/--filter` options, following
+the same pattern as `export csv` / `export feather`.
+
+### `sdaps/cmdline/__init__.py`
+```diff
+ from . import csvdata
+ from . import feather
++from . import ocrtraining
+```
+
+**Usage:**
+```
+sdaps recognize JASONtest/GAS006          # captures crops + OCR guesses
+sdaps gui JASONtest/GAS006                # human reviews/corrects + marks verified
+sdaps export ocr-training -f "verified" JASONtest/GAS006
+# -> JASONtest/GAS006/ocr_training_export/{manifest.csv, images/}
+```
+
+**Verified:** Ran the full loop on the test project — `manifest.csv` and
+`images/` were produced correctly, with filenames sanitized for filesystem
+safety.
+
+---
+
+## 6. Graceful Save on SIGTERM in `sdaps gui`
+
+**Problem:** `sdaps gui` only writes `survey.sqlite` when the user explicitly
+saves (Ctrl+S, or "Save" in the close-confirmation dialog). When the GUI is
+run headlessly (e.g. served over the network via GTK's Broadway backend, with
+no window-close button) and a controlling process needs to end the session,
+sending SIGTERM previously just killed the process, discarding any unsaved
+corrections.
+
+**Fix:** Register a SIGTERM handler, alongside the existing SIGINT handler,
+that calls `survey.save()` before quitting the main loop — mirroring the
+"Save" response of the existing close-confirmation dialog
+(`MainWindow.quit_application` / `save_project`).
+
+### `sdaps/gui/__init__.py`
+```diff
+     try:
+         # Exit the mainloop if Ctrl+C is pressed in the terminal.
+         GLib.unix_signal_add_full(GLib.PRIORITY_HIGH, signal.SIGINT, lambda *args : Gtk.main_quit(), None)
++
++        # SIGTERM is used by external process managers (e.g. a web-based
++        # review dashboard running the GUI under Broadway) to request a
++        # graceful shutdown. Save before quitting, since there is no
++        # window-close dialog to do so in that scenario.
++        def _save_and_quit(*args):
++            provider.survey.save()
++            Gtk.main_quit()
++            return False
++        GLib.unix_signal_add_full(GLib.PRIORITY_HIGH, signal.SIGTERM, _save_and_quit, None)
+     except AttributeError:
+         # Whatever, it is only to enable Ctrl+C anyways
+         pass
+```
+
+---
+
+## 7. Grayscale Companion TIFF During Conversion (infrastructure)
 
 **Background:** During `sdaps add --convert`, the input image is converted to a
 1-bit monochrome TIFF. The original grayscale information is discarded. This
@@ -230,6 +381,8 @@ The following are local test artifacts and should be excluded:
 - `JASONtest/` — local test survey directory with scanned PDFs and generated data
 - `JasonTest.txt` — local scratch file
 - Any `data_N.csv` files — recognition output from test runs
+- Any project's `ocr_training/` and `ocr_training_export/` directories —
+  generated by recognition/export, contain scanned handwriting images
 
 ---
 
@@ -238,3 +391,10 @@ the model "Claude Sonnet 4.6" (model ID `claude-sonnet-4-6`), running in
 Claude Code (Anthropic's CLI for Claude). It was produced by comparing this
 working tree against the upstream sdaps repository (release 1.9.13) and
 should be reviewed for accuracy before submitting the pull request.*
+
+*Updated on 2026-06-10 (also by Claude Sonnet 4.6 / Claude Code) to add
+section 5, "OCR Training-Data Capture and Export".*
+
+*Updated on 2026-06-10 (also by Claude Sonnet 4.6 / Claude Code) to add
+section 6, "Graceful Save on SIGTERM in `sdaps gui`", and renumber the former
+section 6 ("Grayscale Companion TIFF During Conversion") to section 7.*
