@@ -5,6 +5,7 @@ global_id =
 [info]
 Author = 
 scale_id = gas
+site = Montreal
 
 [defs]
 # These values are not read back, they exist for information only!

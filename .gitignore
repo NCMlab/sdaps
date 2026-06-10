@@ -18,3 +18,4 @@ _build
 dist
 setup.cfg
 sdaps-snapshot.spec
+JASONtest

@@ -322,3 +322,74 @@ Processed 1 of 1 sheets, took 10.059249 seconds
 ------------------------------------------------------------------------------
 - SDAPS -- csvdata_export
 ------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- cover
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- annotate
+------------------------------------------------------------------------------
+/home/steffejr/PaperQuestionnaires/sdaps/sdaps/annotate/__init__.py:18: PyGIWarning: Poppler was imported without specifying a version first. Use gi.require_version('Poppler', '0.18') before import to ensure that the right version gets loaded.
+  from gi.repository import Poppler
+/home/steffejr/PaperQuestionnaires/sdaps/sdaps/annotate/buddies.py:21: PyGIWarning: Pango was imported without specifying a version first. Use gi.require_version('Pango', '1.0') before import to ensure that the right version gets loaded.
+  from gi.repository import Pango
+/home/steffejr/PaperQuestionnaires/sdaps/sdaps/annotate/buddies.py:22: PyGIWarning: PangoCairo was imported without specifying a version first. Use gi.require_version('PangoCairo', '1.0') before import to ensure that the right version gets loaded.
+  from gi.repository import PangoCairo
+------------------------------------------------------------------------------
+- SDAPS -- ids
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- add
+------------------------------------------------------------------------------
+Converting input files into a single temporary file.
+Processing /tmp/sdaps-convert-uej5osat.tif
+Done
+------------------------------------------------------------------------------
+- SDAPS -- recognize
+------------------------------------------------------------------------------
+2 sheets
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|                                                                                                                          | 0/478 [00:00<?, ?it/s]Loading weights:  85%|#############################################################################################8                | 408/478 [00:00<00:00, 4078.97it/s]Loading weights: 100%|##############################################################################################################| 478/478 [00:00<00:00, 4641.05it/s]
+[transformers] [1mVisionEncoderDecoderModel LOAD REPORT[0m from: microsoft/trocr-base-handwritten
+Key                         | Status  | 
+----------------------------+---------+-
+encoder.pooler.dense.bias   | [31mMISSING[0m | 
+encoder.pooler.dense.weight | [31mMISSING[0m | 
+
+Notes:
+- [31mMISSING:[0m	[3mthose params were newly initialized because missing from the checkpoint. Consider training on your downstream task.[0m
+/home/steffejr/.local/lib/python3.12/site-packages/transformers/generation/utils.py:1612: UserWarning: Using the model-agnostic default `max_length` (=21) to control the generation length. We recommend setting `max_new_tokens` to control the maximum length of the generation.
+  warnings.warn(
+Processed 1 of 2 sheets, took 11.812924 seconds
+------------------------------------------------------------------------------
+- SDAPS -- csvdata_export
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- gui
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- csvdata_export
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- info
+------------------------------------------------------------------------------
+Existing fields:
+title
+Author
+scale_id
+------------------------------------------------------------------------------
+- SDAPS -- info
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- SDAPS -- info
+------------------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/steffejr/PaperQuestionnaires/sdaps/sdaps/__init__.py", line 67, in main
+    return cmdline['_func'](cmdline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/steffejr/PaperQuestionnaires/sdaps/sdaps/script.py", line 126, in decorated_function
+    result = function(cmdline)
+             ^^^^^^^^^^^^^^^^^
+  File "/home/steffejr/PaperQuestionnaires/sdaps/sdaps/cmdline/info.py", line 67, in info
+    print(survey.info[key])
+          ~~~~~~~~~~~^^^^^
+KeyError: 'site:Montreal'
