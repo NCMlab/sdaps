@@ -337,3 +337,11 @@ sdaps gui GAS006                             # spot-check / correct
 sdaps export csv GAS006
 sdaps report tex GAS006
 ```
+
+---
+
+*This document was generated on 2026-06-10 by Claude (Anthropic), specifically
+the model "Claude Sonnet 4.6" (model ID `claude-sonnet-4-6`), running in
+Claude Code (Anthropic's CLI for Claude). Content was produced by reading the
+sdaps command-line source (`sdaps/cmdline/*.py`) and should be verified
+against `sdaps <command> -h` if it is later modified.*

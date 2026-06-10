@@ -230,3 +230,11 @@ The following are local test artifacts and should be excluded:
 - `JASONtest/` — local test survey directory with scanned PDFs and generated data
 - `JasonTest.txt` — local scratch file
 - Any `data_N.csv` files — recognition output from test runs
+
+---
+
+*This document was generated on 2026-06-09 by Claude (Anthropic), specifically
+the model "Claude Sonnet 4.6" (model ID `claude-sonnet-4-6`), running in
+Claude Code (Anthropic's CLI for Claude). It was produced by comparing this
+working tree against the upstream sdaps repository (release 1.9.13) and
+should be reviewed for accuracy before submitting the pull request.*
