@@ -374,6 +374,151 @@ grayscale companion into the survey directory as `N_gray.tif`.
 
 ---
 
+## 8. Accurate Crop Region for Textbox OCR (Bounding Box Fix)
+
+**Problem:** On real scans (tested with the `gas-en` project), the crop fed to
+TrOCR was taken from the *static printed box* (`self.obj.x/y/width/height`),
+which is often considerably larger than the area actually written in. As a
+result, large portions of the handwritten text fell outside the crop and were
+never seen by the OCR model.
+
+**Fix:** Crop from the *detected handwriting bounding box*
+(`self.obj.data.x/y/width/height`), which was already computed a few lines
+earlier from the connected-component scan plus `scan_padding` +
+`extra_padding` clearance. Combined with this tighter, more accurate crop, the
+border-removal inset no longer needs to chew up 5%/15% of the image — a fixed
+2px inset is enough to drop rendering edge artifacts, since any leftover
+border-line sliver is filtered out by the existing oversized-blob check.
+
+### `sdaps/recognize/buddies.py`
+```diff
+-                px0, py0 = matrix.transform_point(self.obj.x, self.obj.y)
++                # Crop to the detected handwriting bounding box (just computed
++                # above), not the static printed box. The printed box is often
++                # much larger than what was actually written, while the
++                # detected bbox already includes scan_padding + extra_padding
++                # clearance from the outline, so it avoids both cutting off
++                # handwriting and including the border lines.
++                px0, py0 = matrix.transform_point(self.obj.data.x, self.obj.data.y)
+                 px1, py1 = matrix.transform_point(
+-                    self.obj.x + self.obj.width,
+-                    self.obj.y + self.obj.height)
++                    self.obj.data.x + self.obj.data.width,
++                    self.obj.data.y + self.obj.data.height)
+                 px = int(min(px0, px1))
+                 py = int(min(py0, py1))
+                 pw = int(abs(px1 - px0))
+@@ ...
+                     ah, aw = gray.shape
+                     if ah > 0 and aw > 0:
+-                        # Strip box borders: inset ~5% horizontally, ~15% vertically.
+-                        # The matrix coordinates place us inside the box already,
+-                        # so this inset fully removes any remaining border lines.
+-                        ix = max(3, int(aw * 0.05))
+-                        iy = max(3, int(ah * 0.15))
++                        # The crop is already the detected handwriting bbox
++                        # (plus scan/extra padding), so only a tiny inset is
++                        # needed to drop rendering edge artifacts. Any thin
++                        # border-line sliver that remains is filtered out
++                        # below as an oversized blob.
++                        ix = min(2, aw // 2)
++                        iy = min(2, ah // 2)
+                         inner = gray[iy:ah - iy, ix:aw - ix]
+                         ih, iw = inner.shape
+```
+
+**Verified:** Re-ran recognition on the `gas-en` test project. Before this
+change, the saved `ocr_training/*.png` crops for the `worker_id`/`week`
+textboxes visibly cut off parts of the handwritten digits; after the change,
+the full handwriting is contained in the crop and recognition accuracy
+improved (though not yet perfect — see follow-up note below).
+
+**Follow-up (not implemented):** Since `worker_id` and `week` are always
+numeric, constraining TrOCR/decoding to digits only could further improve
+accuracy. This was discussed but explicitly deferred by the project owner for
+now.
+
+---
+
+## 9. Editable Questionnaire ID in `sdaps gui`
+
+**Problem:** The barcode stamped in the corner of each questionnaire (via
+`sdaps stamp`) encodes the questionnaire ID, but barcode recognition
+occasionally fails on a scanned sheet and `sheet.questionnaire_id` is left as
+`None`. The review GUI displayed this value as a read-only label
+(`<b>Questionnaire ID: </b>None`), so a human reviewer had no way to correct
+it — there was no path to fix a sheet with a missed barcode short of editing
+the database directly.
+
+**Fix:** Replace the read-only `Gtk.Label` with an editable
+`Gtk.ComboBoxText.new_with_entry()`. The dropdown is pre-populated with
+`survey.questionnaire_ids` (the IDs stamped onto the questionnaires via
+`sdaps stamp`) for quick selection, but a reviewer can also type any value
+directly into the entry — in particular, replacing `None`/empty with the
+correct ID read off the paper sheet. Edits are written back to
+`sheet.questionnaire_id` immediately (assigning to this attribute marks the
+sheet dirty via the existing `Sheet.__setattr__`/`_save_attrs` machinery, the
+same as the existing `valid`/`verified` checkboxes), so they are picked up by
+the normal save path (including the SIGTERM-triggered save from section 6).
+
+### `sdaps/gui/widget_buddies.py`
+
+`create_widget`: build an editable combo instead of a static label.
+```diff
+-        self.qid = Gtk.Label()
+-        self.qid.set_markup(_('<b>Questionnaire ID: </b>') + markup_escape_text(str(self.obj.survey.sheet.questionnaire_id)))
+-        self.qid.props.xalign = 0.0
++        qid_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
++
++        qid_label = Gtk.Label()
++        qid_label.set_markup(_('<b>Questionnaire ID: </b>'))
++        qid_label.props.xalign = 0.0
++
++        # Editable, so that a questionnaire ID that could not be recognized
++        # (shown as "None") can be entered by hand. The dropdown is
++        # pre-filled with the IDs that were stamped onto the questionnaires,
++        # but any value can also be typed in directly.
++        self.qid_combo = Gtk.ComboBoxText.new_with_entry()
++        for qid in self.obj.survey.questionnaire_ids:
++            self.qid_combo.append_text(str(qid))
++        self.qid_entry = self.qid_combo.get_child()
++        self.qid_entry.connect('changed', self.qid_entry_changed_cb)
++
++        qid_box.pack_start(qid_label, False, True, 0)
++        qid_box.pack_start(self.qid_combo, True, True, 6)
+
+         indent.add(vbox)
+
+-        vbox.add(self.qid)
++        vbox.add(qid_box)
+```
+
+`sync_state`: update the entry text instead of the label markup, guarding
+against feedback loops while typing.
+```diff
+-        self.qid.set_markup(_('<b>Questionnaire ID: </b>') + markup_escape_text(str(self.obj.survey.sheet.questionnaire_id)))
++        # Only update the text if it changed (or else recursion hits and the
++        # cursor/focus would jump around while typing)
++        qid = self.obj.survey.sheet.questionnaire_id
++        qid_text = '' if qid is None else str(qid)
++        if self.qid_entry.get_text() != qid_text:
++            self.qid_entry.set_text(qid_text)
+```
+
+New callback, alongside the existing `toggled_valid_cb`/`toggled_verified_cb`:
+```diff
++    def qid_entry_changed_cb(self, widget):
++        text = widget.get_text()
++        self.obj.survey.sheet.questionnaire_id = text if text else None
+```
+
+**Verified:** Ran `sdaps gui` (via Broadway) on the `gas-en` test project,
+which had one sheet where barcode recognition returned `None`. The field was
+editable, pre-filled with the stamped IDs as dropdown suggestions, and typing
+the correct ID and saving persisted it to `survey.sqlite`.
+
+---
+
 ## Files NOT to include in the PR
 
 The following are local test artifacts and should be excluded:
@@ -398,3 +543,7 @@ section 5, "OCR Training-Data Capture and Export".*
 *Updated on 2026-06-10 (also by Claude Sonnet 4.6 / Claude Code) to add
 section 6, "Graceful Save on SIGTERM in `sdaps gui`", and renumber the former
 section 6 ("Grayscale Companion TIFF During Conversion") to section 7.*
+
+*Updated on 2026-06-12 (also by Claude Sonnet 4.6 / Claude Code) to add
+section 8, "Accurate Crop Region for Textbox OCR (Bounding Box Fix)", and
+section 9, "Editable Questionnaire ID in `sdaps gui`".*

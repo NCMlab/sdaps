@@ -525,3 +525,18 @@ Processed 1 of 3 sheets, took 11.839755 seconds
 - SDAPS -- ocrtraining_export
 ------------------------------------------------------------------------------
 Exported 6 (image, text) pairs to sdaps/JASONtest/GAS006/ocr_training_export
+------------------------------------------------------------------------------
+- SDAPS -- gui
+------------------------------------------------------------------------------
+/home/steffejr/PaperQuestionnaires/sdaps/sdaps/gui/__init__.py:190: Warning: g_object_set_data_full: assertion 'G_IS_OBJECT (object)' failed
+  self._builder.add_from_file(
+------------------------------------------------------------------------------
+- SDAPS -- gui
+------------------------------------------------------------------------------
+/home/steffejr/PaperQuestionnaires/sdaps/sdaps/gui/__init__.py:190: Warning: g_object_set_data_full: assertion 'G_IS_OBJECT (object)' failed
+  self._builder.add_from_file(
+------------------------------------------------------------------------------
+- SDAPS -- gui
+------------------------------------------------------------------------------
+/home/steffejr/PaperQuestionnaires/sdaps/sdaps/gui/__init__.py:190: Warning: g_object_set_data_full: assertion 'G_IS_OBJECT (object)' failed
+  self._builder.add_from_file(

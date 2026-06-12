@@ -934,10 +934,16 @@ class Textbox(Box, metaclass=model.buddy.Register):
                 from scipy import ndimage as _ndimage
                 from PIL import Image as _PILImage
 
-                px0, py0 = matrix.transform_point(self.obj.x, self.obj.y)
+                # Crop to the detected handwriting bounding box (just computed
+                # above), not the static printed box. The printed box is often
+                # much larger than what was actually written, while the
+                # detected bbox already includes scan_padding + extra_padding
+                # clearance from the outline, so it avoids both cutting off
+                # handwriting and including the border lines.
+                px0, py0 = matrix.transform_point(self.obj.data.x, self.obj.data.y)
                 px1, py1 = matrix.transform_point(
-                    self.obj.x + self.obj.width,
-                    self.obj.y + self.obj.height)
+                    self.obj.data.x + self.obj.data.width,
+                    self.obj.data.y + self.obj.data.height)
                 px = int(min(px0, px1))
                 py = int(min(py0, py1))
                 pw = int(abs(px1 - px0))
@@ -960,11 +966,13 @@ class Textbox(Box, metaclass=model.buddy.Register):
 
                     ah, aw = gray.shape
                     if ah > 0 and aw > 0:
-                        # Strip box borders: inset ~5% horizontally, ~15% vertically.
-                        # The matrix coordinates place us inside the box already,
-                        # so this inset fully removes any remaining border lines.
-                        ix = max(3, int(aw * 0.05))
-                        iy = max(3, int(ah * 0.15))
+                        # The crop is already the detected handwriting bbox
+                        # (plus scan/extra padding), so only a tiny inset is
+                        # needed to drop rendering edge artifacts. Any thin
+                        # border-line sliver that remains is filtered out
+                        # below as an oversized blob.
+                        ix = min(2, aw // 2)
+                        iy = min(2, ah // 2)
                         inner = gray[iy:ah - iy, ix:aw - ix]
                         ih, iw = inner.shape
 

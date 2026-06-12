@@ -80,13 +80,28 @@ class Questionnaire(model.buddy.Buddy, metaclass=model.buddy.Register):
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
-        self.qid = Gtk.Label()
-        self.qid.set_markup(_('<b>Questionnaire ID: </b>') + markup_escape_text(str(self.obj.survey.sheet.questionnaire_id)))
-        self.qid.props.xalign = 0.0
+        qid_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+
+        qid_label = Gtk.Label()
+        qid_label.set_markup(_('<b>Questionnaire ID: </b>'))
+        qid_label.props.xalign = 0.0
+
+        # Editable, so that a questionnaire ID that could not be recognized
+        # (shown as "None") can be entered by hand. The dropdown is
+        # pre-filled with the IDs that were stamped onto the questionnaires,
+        # but any value can also be typed in directly.
+        self.qid_combo = Gtk.ComboBoxText.new_with_entry()
+        for qid in self.obj.survey.questionnaire_ids:
+            self.qid_combo.append_text(str(qid))
+        self.qid_entry = self.qid_combo.get_child()
+        self.qid_entry.connect('changed', self.qid_entry_changed_cb)
+
+        qid_box.pack_start(qid_label, False, True, 0)
+        qid_box.pack_start(self.qid_combo, True, True, 6)
 
         indent.add(vbox)
 
-        vbox.add(self.qid)
+        vbox.add(qid_box)
         vbox.add(self.valid_checkbox)
         vbox.add(self.sheet_verified_checkbox)
         vbox.add(self.page_verified_checkbox)
@@ -112,7 +127,13 @@ class Questionnaire(model.buddy.Buddy, metaclass=model.buddy.Register):
         for qobject in self.obj.qobjects:
             qobject.widget.sync_state()
 
-        self.qid.set_markup(_('<b>Questionnaire ID: </b>') + markup_escape_text(str(self.obj.survey.sheet.questionnaire_id)))
+        # Only update the text if it changed (or else recursion hits and the
+        # cursor/focus would jump around while typing)
+        qid = self.obj.survey.sheet.questionnaire_id
+        qid_text = '' if qid is None else str(qid)
+        if self.qid_entry.get_text() != qid_text:
+            self.qid_entry.set_text(qid_text)
+
         self.valid_checkbox.set_active(self.obj.survey.sheet.valid)
         self.sheet_verified_checkbox.set_active(self.obj.survey.sheet.verified)
         self.page_verified_checkbox.set_active(self._current_image.verified)
@@ -142,6 +163,10 @@ class Questionnaire(model.buddy.Buddy, metaclass=model.buddy.Register):
         currtext = self.review_buffer.get_text(start, end, False)
 
         self.obj.survey.sheet.review_comment = currtext
+
+    def qid_entry_changed_cb(self, widget):
+        text = widget.get_text()
+        self.obj.survey.sheet.questionnaire_id = text if text else None
 
     def toggled_valid_cb(self, widget):
         self.obj.survey.sheet.valid = widget.get_active()
