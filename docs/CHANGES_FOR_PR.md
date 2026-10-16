@@ -30,6 +30,23 @@ combinations.
 The scan recognition threshold (`image_line_width`) must match the PDF line
 width so that the C corner-marker detector uses the correct expected stroke width.
 
+### `sdaps/image/image.c` — `real_find_corner_marker()`
+```diff
+-		distance += line_length / 4;
++		distance += MAX(line_length,1);
+```
+The search loop now steps outward by a full line length per iteration instead
+of a quarter, and `MAX(..., 1)` guarantees forward progress (the old
+`line_length / 4` evaluates to 0 for line lengths under 4 px, which would loop
+without advancing). Note that the coarser step trades search resolution for
+speed; with the thicker 3bp marks this still lands on the marker, but this
+change should be reviewed on its own merits by upstream.
+
+**Note on `tex/class`:** the `.dtx` changes in sections 1–3 live in the
+`tex/class` submodule (`../sdaps-class`). The submodule is pinned at commit
+`b9b38e8`, which must be pushed to the NCMlab/sdaps-class fork (and offered
+upstream as a separate PR) before this PR can be built from a fresh clone.
+
 ---
 
 ## 2. Barcode Text Label Position (PDF generation)
@@ -547,3 +564,8 @@ section 6 ("Grayscale Companion TIFF During Conversion") to section 7.*
 *Updated on 2026-06-12 (also by Claude Sonnet 4.6 / Claude Code) to add
 section 8, "Accurate Crop Region for Textbox OCR (Bounding Box Fix)", and
 section 9, "Editable Questionnaire ID in `sdaps gui`".*
+
+*Updated on 2026-10-16 (by Claude Opus 5.5 / Claude Code) to document the
+`sdaps/image/image.c` corner-marker search-step change in section 1, fix a
+missing semicolon in that line that broke compilation, and note that the
+`tex/class` submodule commit is not yet published.*
